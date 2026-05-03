@@ -1,14 +1,14 @@
-STUDENT HEALTH & EMERGENCY CONTACT SYSTEM 
-DSA Final Project
+# STUDENT HEALTH & EMERGENCY CONTACT SYSTEM 
+# DSA Final Project
 
 ---
 
-OVERVIEW
+# OVERVIEW
 STUDENT HEALTH & EMERGENCY CONTACT SYSTEM is a student health record manager built in C for school use. It runs entirely in the terminal with no graphical user interface. The system uses a role-based login, three types of users exist, each with different access levels. Students can only view their own health record. Staff can add, search, update, and manage records. Admins have full access including deleting records and viewing the activity log. When logging in, every action taken during that session is recorded in an activity log stamped with the user's name so there is always a trace of who did what
 
 ---
 
-DATA STRUCTURES AND ALGORTIHMS USED
+# DATA STRUCTURES AND ALGORTIHMS USED
 1. Array - stores all student records in a fixed 50-slot array. Each slot holds one complete student profile including their ID, name, age, blood type, address, and medical condition. A slot is marked active or free using a flag, so deleted records release their slot for reuse
 Features it supports: adding students, searching, updating, deleting, and listing all records
 
@@ -28,7 +28,7 @@ Complexity: O(n²)
 
 ---
 
-HOW TO RUN 
+# HOW TO RUN 
 REQUIREMENTS: GCC or any C99-compatible compiler 
 
 # Step 1 — Compile
@@ -40,7 +40,7 @@ student_health.exe      # for Windows
 
 ---
 
-ACCOUNT LOGIN GUIDE
+# ACCOUNT LOGIN GUIDE
 +-------------+------------+------------+
 |    ROLE     | LOGIN WITH | PASSWORD   |
 +-------------+------------+------------+
