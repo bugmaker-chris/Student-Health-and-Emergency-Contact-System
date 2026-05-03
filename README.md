@@ -41,12 +41,11 @@ student_health.exe      # for Windows
 ---
 
 # ACCOUNT LOGIN GUIDE
-+-------------+------------+------------+                         
-|    ROLE     | LOGIN WITH | PASSWORD   | 
-+-------------+------------+------------+ 
-| 1. STUDENT  | student id |   none     | 
-| 2. STAFF    | name       |   none     | 
-| 3. ADMIN    | name       | admin123   | 
-+-------------+------------+------------+ 
++-------------+------------+------------+                            |   ROLE      | LOGIN WITH  | PASSWORD  | 
+                                                                     +-------------+------------+------------+ 
+                                                                     | 1. STUDENT  | student id |   none     | 
+                                                                     | 2. STAFF    | name       |   none     | 
+                                                                     | 3. ADMIN    | name       | admin123   | 
+                                                                     +-------------+------------+------------+ 
 
 ---
