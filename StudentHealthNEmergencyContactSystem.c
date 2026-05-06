@@ -1,15 +1,13 @@
 /* student_health_system.c
- * Title   : Student Health & Emergency Contacts System
- * Project : Final Project – Data Structures & Algorithms
- *
- * Data Structures:
- *   1. Array       – holds all student records (fixed-size, direct access)
- *   2. Linked List – emergency contacts per student (dynamic, heap-allocated)
- *   3. Stack       – activity log, LIFO, stamped with the logged-in user
- *
- * Algorithms:
- *   1. Linear Search – find student by ID or name keyword  (O(n))
- *   2. Bubble Sort   – sort students A-Z before listing    (O(n^2))
+   Title   : Student Health & Emergency Contacts System
+   Project : Final Project – Data Structures & Algorithms
+ Data Structures:
+   1. Array       – holds all student records (fixed-size, direct access)
+   2. Linked List – emergency contacts per student (dynamic, heapallocated)
+   3. Stack       – activity log, LIFO, stamped with the logged in user
+Algorithms:
+   1. Linear Search – find student by ID or name keyword  (O(n))
+   2. Bubble Sort   – sort students A-Z before listing    (O(n^2))
  */
 
 #include <stdio.h>
@@ -17,7 +15,7 @@
 #include <string.h>
 #include <ctype.h>
 
-/* ── Constants ─────────────────────────────────────────────────────── */
+/* Constants */
 #define MAX_STUDENTS   50
 #define MAX_NAME       50
 #define MAX_ID         15
@@ -28,15 +26,12 @@
 #define LOG_CAP        20
 #define ADMIN_PASS     "admin123"
 
-/* ── Role IDs ──────────────────────────────────────────────────────── */
+/* Role IDs */
 #define ROLE_STUDENT  0
 #define ROLE_STAFF    1
 #define ROLE_ADMIN    2
 
-/* ═══════════════════════════════════════════════════════════════════
- * DATA STRUCTURE 2 – Linked List (Emergency Contacts)
- * Each node stores one contact; nodes are chained via *next.
- * ═══════════════════════════════════════════════════════════════════ */
+/* DATA STRUCTURE 2 – Linked List (Emergency Contacts) */
 typedef struct ContactNode {
     char name[MAX_NAME];
     char relationship[MAX_NAME];
@@ -44,46 +39,31 @@ typedef struct ContactNode {
     struct ContactNode *next;
 } ContactNode;
 
-/* ═══════════════════════════════════════════════════════════════════
- * DATA STRUCTURE 1 – Array of Student Records
- * Fixed array is the main "database". The 'active' flag marks
- * occupied slots so deleted records do not leave gaps we cannot reuse.
- * ═══════════════════════════════════════════════════════════════════ */
+/* DATA STRUCTURE 1 – Array of Student Records */
 typedef struct {
-    char         id[MAX_ID];
-    char         name[MAX_NAME];
-    int          age;
-    char         bloodType[5];
-    char         address[MAX_ADDRESS];
-    char         condition[MAX_CONDITION];
-    ContactNode *contacts;   /* head of the linked list */
-    int          active;     /* 1 = in use, 0 = free slot */
+    char id[MAX_ID];
+    char name[MAX_NAME];
+    int age;
+    char bloodType[5];
+    char address[MAX_ADDRESS];
+    char condition[MAX_CONDITION];
+    ContactNode *contacts;  
+    int active;   
 } Student;
 
 Student students[MAX_STUDENTS];
 int     studentCount = 0;
 
-/* ═══════════════════════════════════════════════════════════════════
- * DATA STRUCTURE 3 – Stack (Activity Log)
- * Entries are pushed with the current user's name attached.
- * Viewing the stack shows the most recent action first (LIFO).
- * ═══════════════════════════════════════════════════════════════════ */
+/* DATA STRUCTURE 3 – Stack (Activity Log) */
 typedef struct {
     char entries[LOG_CAP][MAX_LOG];
     int  top;
 } Stack;
 
 Stack actLog;
-
-/* Session state – set during login */
 char currentUser[MAX_NAME] = "Unknown";
 int  currentRole = ROLE_STUDENT;
 
-/* ═══════════════════════════════════════════════════════════════════
- * VALIDATION HELPERS
- * ═══════════════════════════════════════════════════════════════════ */
-
-/* Only letters and spaces – used for names and relationships */
 int isValidName(const char *s) {
     if (!s || strlen(s) == 0) return 0;
     for (int i = 0; s[i]; i++)
@@ -91,17 +71,15 @@ int isValidName(const char *s) {
     return 1;
 }
 
-/* 7-15 characters, digits / dashes / plus / spaces only */
 int isValidPhone(const char *s) {
     int len = (int)strlen(s);
-    if (len < 7 || len > 15) return 0;
+    if (len < 10 || len > 11) return 0;
     for (int i = 0; s[i]; i++)
         if (!isdigit((unsigned char)s[i]) && s[i] != '-' && s[i] != '+' && s[i] != ' ')
             return 0;
     return 1;
 }
 
-/* Must match one of the eight standard blood type codes */
 int isValidBlood(const char *s) {
     const char *valid[] = { "A+","A-","B+","B-","AB+","AB-","O+","O-", NULL };
     for (int i = 0; valid[i]; i++)
@@ -109,7 +87,6 @@ int isValidBlood(const char *s) {
     return 0;
 }
 
-/* All digits, converts to int, must be between 1 and 120 */
 int isValidAge(const char *s, int *out) {
     if (!s || strlen(s) == 0) return 0;
     for (int i = 0; s[i]; i++)
@@ -118,7 +95,6 @@ int isValidAge(const char *s, int *out) {
     return (*out >= 1 && *out <= 120);
 }
 
-/* Alphanumeric only, 1-14 characters */
 int isValidID(const char *s) {
     int len = (int)strlen(s);
     if (len == 0 || len >= MAX_ID) return 0;
@@ -127,7 +103,6 @@ int isValidID(const char *s) {
     return 1;
 }
 
-/* Safe fgets wrapper that strips the trailing newline */
 void readLine(char *buf, int size) {
     if (fgets(buf, size, stdin)) {
         int len = (int)strlen(buf);
@@ -135,18 +110,13 @@ void readLine(char *buf, int size) {
     }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
- * STACK OPERATIONS
- * ═══════════════════════════════════════════════════════════════════ */
-
+/*STACK OPERATIONS*/
 void stackInit(void) { actLog.top = -1; }
 
-/* Push a new log entry – oldest entry is lost when the stack is full */
 void stackPush(const char *action) {
     if (actLog.top < LOG_CAP - 1) {
         actLog.top++;
     } else {
-        /* Drop the oldest entry by shifting everything down one slot */
         for (int i = 0; i < LOG_CAP - 1; i++)
             strcpy(actLog.entries[i], actLog.entries[i + 1]);
     }
@@ -160,11 +130,7 @@ void stackView(void) {
         printf("  %2d. %s\n", actLog.top - i + 1, actLog.entries[i]);
 }
 
-/* ═══════════════════════════════════════════════════════════════════
- * LINKED LIST – Emergency Contact Operations
- * ═══════════════════════════════════════════════════════════════════ */
-
-/* Allocate a new node and append it to the end of the student's list */
+/*LINKED LIST – Emergency Contact Operations*/
 void contactAdd(Student *s, const char *name, const char *rel, const char *phone) {
     ContactNode *node = (ContactNode *)malloc(sizeof(ContactNode));
     if (!node) { printf("  Memory error.\n"); return; }
@@ -180,7 +146,6 @@ void contactAdd(Student *s, const char *name, const char *rel, const char *phone
     cur->next = node;
 }
 
-/* Print all contacts with 1-based numbering */
 void contactViewAll(const Student *s) {
     if (!s->contacts) { printf("  No contacts on file.\n"); return; }
     ContactNode *cur = s->contacts;
@@ -192,7 +157,6 @@ void contactViewAll(const Student *s) {
     }
 }
 
-/* Remove the node at 1-based position idx; returns 1 on success */
 int contactDelete(Student *s, int idx) {
     if (!s->contacts || idx < 1) return 0;
     ContactNode *cur = s->contacts;
@@ -206,15 +170,12 @@ int contactDelete(Student *s, int idx) {
     return 1;
 }
 
-/* Walk the list and free every node */
 void contactFreeAll(Student *s) {
     ContactNode *cur = s->contacts;
     while (cur) { ContactNode *nxt = cur->next; free(cur); cur = nxt; }
     s->contacts = NULL;
 }
 
-/* Prompts the user to enter one or more contacts in a loop.
-   Used both during student creation and in the contact manager. */
 void contactInputLoop(Student *s) {
     char yn;
     printf("\n  Add an emergency contact? (y/n): ");
@@ -244,12 +205,7 @@ void contactInputLoop(Student *s) {
     }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
- * ALGORITHM 1 – LINEAR SEARCH
- * Scans students[] from index 0 upward until a match is found.
- * Returns the array index, or -1 if nothing matched.
- * ═══════════════════════════════════════════════════════════════════ */
-
+/*ALGORITHM 1 – LINEAR SEARCH*/
 int searchByID(const char *id) {
     for (int i = 0; i < MAX_STUDENTS; i++)
         if (students[i].active && strcmp(students[i].id, id) == 0) return i;
@@ -272,12 +228,7 @@ int searchByName(const char *kw) {
     return -1;
 }
 
-/* ═══════════════════════════════════════════════════════════════════
- * ALGORITHM 2 – BUBBLE SORT (alphabetical A to Z)
- * Builds a temporary index array of active slots, then sorts those
- * indices by comparing the student names they point to.
- * ═══════════════════════════════════════════════════════════════════ */
-
+/*ALGORITHM 2 – BUBBLE SORT (alphabetical A to Z)*/
 void listSorted(void) {
     int idx[MAX_STUDENTS], n = 0;
     for (int i = 0; i < MAX_STUDENTS; i++)
@@ -285,7 +236,6 @@ void listSorted(void) {
 
     if (n == 0) { printf("  No students registered yet.\n"); return; }
 
-    /* Bubble Sort – outer pass, inner comparison and swap */
     for (int p = 0; p < n - 1; p++)
         for (int j = 0; j < n - p - 1; j++)
             if (strcmp(students[idx[j]].name, students[idx[j + 1]].name) > 0) {
@@ -304,9 +254,7 @@ void listSorted(void) {
     printf("  Total: %d student(s)\n", n);
 }
 
-/* ═══════════════════════════════════════════════════════════════════
- * STUDENT DISPLAY – formatted record with contacts
- * ═══════════════════════════════════════════════════════════════════ */
+/*STUDENT DISPLAY – formatted record with contacts*/
 
 void studentDisplay(int i) {
     Student *s = &students[i];
@@ -324,10 +272,6 @@ void studentDisplay(int i) {
     contactViewAll(s);
 }
 
-/* ═══════════════════════════════════════════════════════════════════
- * STUDENT CRUD
- * ═══════════════════════════════════════════════════════════════════ */
-
 void studentAdd(void) {
     if (studentCount >= MAX_STUDENTS) { printf("  Database is full.\n"); return; }
 
@@ -339,44 +283,38 @@ void studentAdd(void) {
     Student *s = &students[slot];
     printf("\n  -- Add New Student --\n");
 
-    /* ID: alphanumeric, must not already exist */
     do {
         printf("  Student ID        : "); readLine(s->id, sizeof(s->id));
         if (!isValidID(s->id))
             printf("  ! Alphanumeric only, max 14 characters.\n");
         else if (searchByID(s->id) != -1) {
             printf("  ! That ID is already taken.\n");
-            s->id[0] = '\0';   /* clear so the loop continues */
+            s->id[0] = '\0';   
         }
     } while (!isValidID(s->id));
 
-    /* Name */
     do {
         printf("  Full Name         : "); readLine(s->name, sizeof(s->name));
         if (!isValidName(s->name)) printf("  ! Letters and spaces only.\n");
     } while (!isValidName(s->name));
 
-    /* Age */
     char ageBuf[10];
     do {
         printf("  Age (1-120)       : "); readLine(ageBuf, sizeof(ageBuf));
         if (!isValidAge(ageBuf, &s->age)) printf("  ! Must be a number between 1 and 120.\n");
     } while (!isValidAge(ageBuf, &s->age));
 
-    /* Blood Type */
     do {
         printf("  Blood Type        : "); readLine(s->bloodType, sizeof(s->bloodType));
         if (!isValidBlood(s->bloodType))
             printf("  ! Valid values: A+ A- B+ B- AB+ AB- O+ O-\n");
     } while (!isValidBlood(s->bloodType));
 
-    /* Address */
     do {
         printf("  Address           : "); readLine(s->address, sizeof(s->address));
         if (strlen(s->address) == 0) printf("  ! Address cannot be empty.\n");
     } while (strlen(s->address) == 0);
 
-    /* Medical Condition */
     do {
         printf("  Condition (or None): "); readLine(s->condition, sizeof(s->condition));
         if (strlen(s->condition) == 0) printf("  ! Enter a value or type 'None'.\n");
@@ -386,7 +324,6 @@ void studentAdd(void) {
     s->active   = 1;
     studentCount++;
 
-    /* Emergency contacts added right here during registration */
     contactInputLoop(s);
 
     char msg[MAX_LOG];
@@ -406,7 +343,7 @@ void studentSearch(void) {
             printf("  Student ID: "); readLine(id, sizeof(id));
             if (!isValidID(id)) printf("  ! Invalid ID format.\n");
         } while (!isValidID(id));
-        idx = searchByID(id);                  /* Algorithm 1 */
+        idx = searchByID(id);
 
     } else if (ch[0] == '2') {
         char kw[MAX_NAME];
@@ -414,13 +351,12 @@ void studentSearch(void) {
             printf("  Name keyword: "); readLine(kw, sizeof(kw));
             if (strlen(kw) == 0) printf("  ! Keyword cannot be empty.\n");
         } while (strlen(kw) == 0);
-        idx = searchByName(kw);                /* Algorithm 1 */
+        idx = searchByName(kw);
 
     } else { printf("  Invalid choice.\n"); return; }
 
     if (idx == -1) { printf("  Student not found.\n"); return; }
 
-    /* Students can only see their own record */
     if (currentRole == ROLE_STUDENT && strcmp(students[idx].id, currentUser) != 0) {
         printf("  Access denied. You may only view your own record.\n"); return;
     }
@@ -438,7 +374,7 @@ void studentUpdate(void) {
         if (!isValidID(id)) printf("  ! Invalid ID format.\n");
     } while (!isValidID(id));
 
-    int idx = searchByID(id);              /* Algorithm 1 */
+    int idx = searchByID(id);
     if (idx == -1) { printf("  Student not found.\n"); return; }
 
     Student *s = &students[idx];
@@ -502,7 +438,7 @@ void studentDelete(void) {
         if (!isValidID(id)) printf("  ! Invalid ID format.\n");
     } while (!isValidID(id));
 
-    int idx = searchByID(id);              /* Algorithm 1 */
+    int idx = searchByID(id);              
     if (idx == -1) { printf("  Student not found.\n"); return; }
 
     printf("  About to delete: %s\n", students[idx].name);
@@ -522,7 +458,6 @@ void studentDelete(void) {
     printf("  Student deleted.\n");
 }
 
-/* Manage contacts for any student: view / add more / remove one */
 void contactsManage(void) {
     char id[MAX_ID];
     do {
@@ -530,7 +465,7 @@ void contactsManage(void) {
         if (!isValidID(id)) printf("  ! Invalid ID format.\n");
     } while (!isValidID(id));
 
-    int idx = searchByID(id);              /* Algorithm 1 */
+    int idx = searchByID(id);
     if (idx == -1) { printf("  Student not found.\n"); return; }
 
     Student *s = &students[idx];
@@ -554,7 +489,6 @@ void contactsManage(void) {
         printf("  Contact number to remove: ");
         char numBuf[6]; readLine(numBuf, sizeof(numBuf));
 
-        /* Validate: must be a positive integer */
         int valid = 1, num = 0;
         for (int i = 0; numBuf[i]; i++)
             if (!isdigit((unsigned char)numBuf[i])) { valid = 0; break; }
@@ -575,10 +509,7 @@ void contactsManage(void) {
     }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
- * LOGIN
- * ═══════════════════════════════════════════════════════════════════ */
-
+/*LOGIN*/
 void doLogin(void) {
     printf("\n  ╔════════════════════════════════════════════╗\n");
     printf("  ║  STUDENT HEALTH & EMERGENCY CONTACTS SYS  ║\n");
@@ -592,7 +523,6 @@ void doLogin(void) {
     char ch[4]; readLine(ch, sizeof(ch));
 
     if (ch[0] == '1') {
-        /* Students log in using their Student ID */
         currentRole = ROLE_STUDENT;
         do {
             printf("  Your Student ID: "); readLine(currentUser, sizeof(currentUser));
@@ -635,11 +565,7 @@ void doLogin(void) {
     }
 }
 
-/* ═══════════════════════════════════════════════════════════════════
- * SESSION LOOPS – each role sees a different menu
- * ═══════════════════════════════════════════════════════════════════ */
-
-/* Students: can only view their own record */
+/*SESSION LOOPS – each role sees a different menu*/
 void runStudentSession(void) {
     char ch[4];
     do {
@@ -653,7 +579,7 @@ void runStudentSession(void) {
         readLine(ch, sizeof(ch));
 
         if (ch[0] == '1') {
-            int idx = searchByID(currentUser);   /* Algorithm 1 */
+            int idx = searchByID(currentUser);
             if (idx == -1)
                 printf("  No record found for ID '%s'.\n", currentUser);
             else {
@@ -666,7 +592,6 @@ void runStudentSession(void) {
     } while (ch[0] != '0');
 }
 
-/* Staff: add, search, update, contacts, list – NO delete or log */
 void runStaffSession(void) {
     char ch[4];
     do {
@@ -688,14 +613,13 @@ void runStaffSession(void) {
             case '2': studentSearch();  break;
             case '3': studentUpdate();  break;
             case '4': contactsManage(); break;
-            case '5': listSorted();     break;   /* Algorithm 2 */
+            case '5': listSorted();     break;
             case '0': break;
             default:  printf("  Invalid choice.\n");
         }
     } while (ch[0] != '0');
 }
 
-/* Admin: full access including delete and activity log */
 void runAdminSession(void) {
     char ch[4];
     do {
@@ -720,7 +644,7 @@ void runAdminSession(void) {
             case '3': studentUpdate();  break;
             case '4': studentDelete();  break;
             case '5': contactsManage(); break;
-            case '6': listSorted();     break;   /* Algorithm 2 */
+            case '6': listSorted();     break;
             case '7': stackView();      break;
             case '0': break;
             default:  printf("  Invalid choice.\n");
@@ -728,10 +652,7 @@ void runAdminSession(void) {
     } while (ch[0] != '0');
 }
 
-/* ═══════════════════════════════════════════════════════════════════
- * MAIN
- * ═══════════════════════════════════════════════════════════════════ */
-
+/*MAIN*/
 int main(void) {
     memset(students, 0, sizeof(students));
     stackInit();
@@ -739,7 +660,6 @@ int main(void) {
     char again;
     do {
         doLogin();
-
         if      (currentRole == ROLE_STUDENT) runStudentSession();
         else if (currentRole == ROLE_STAFF)   runStaffSession();
         else                                  runAdminSession();
@@ -753,7 +673,6 @@ int main(void) {
 
     printf("\n  Goodbye!\n\n");
 
-    /* Free all heap-allocated contact nodes before exit */
     for (int i = 0; i < MAX_STUDENTS; i++)
         if (students[i].active) contactFreeAll(&students[i]);
 
